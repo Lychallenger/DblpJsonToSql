@@ -1,0 +1,7 @@
+.idea
+target
+back
+*.csv
+*.iml
+src/main/resources/
+src/test/
