@@ -111,7 +111,7 @@ public class ParseJson {
            //处理单个JSON对象内容 {}.这里可以再一次使用流式解析analysisObject,解析单个对象
            String  id = jb.getString("id");
            if(checkOut==false){
-               if(id.equals("223812520")){
+               if(id.equals("788863673")){
                    checkOut=true;
                }
                else{
