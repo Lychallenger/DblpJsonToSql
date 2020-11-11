@@ -34,15 +34,9 @@
             <version>1.1.1</version>
         </dependency>
         <dependency>
-            <groupId>net.sf.ezmorph</groupId>
-            <artifactId>ezmorph</artifactId>
-            <version>1.0.6</version>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.json-lib</groupId>
-            <artifactId>json-lib</artifactId>
-            <version>2.2.3</version>
-            <classifier>jdk15</classifier><!-- 指定jdk版本 -->
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.8</version>
         </dependency>
 
     </dependencies>
