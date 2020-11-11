@@ -48,6 +48,9 @@ public class ParseJson {
            str[i]=str[i].replaceAll("\n"," ")
                    .replaceAll("\r"," ")
                    .trim();
+           if(str[i].length()>700){
+               str[i]=str[i].substring(0,700);
+           }
            if(str[i].equals("")){
                str[i]="NONE";
            }
@@ -102,10 +105,19 @@ public class ParseJson {
        String venue_id="NONE";
        String venue_type="NONE";
        jsonArray.startArray();//相当于开始读整个json的Object对象。
+       boolean checkOut=false;
        while(jsonArray.hasNext()){
            JSONObject jb= (JSONObject) jsonArray.readObject();
            //处理单个JSON对象内容 {}.这里可以再一次使用流式解析analysisObject,解析单个对象
            String  id = jb.getString("id");
+           if(checkOut==false){
+               if(id.equals("223812520")){
+                   checkOut=true;
+               }
+               else{
+                   continue;
+               }
+           }
            System.out.println(id);
            JSONArray authors = jb.getJSONArray("authors");
            //获取第一个author
