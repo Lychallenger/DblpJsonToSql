@@ -6,9 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONReader;
 
 import java.io.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 
 /**
  * @author ：lychallengers@gmail.com
@@ -45,8 +43,40 @@ public class ParseJson {
         Reader reader = new FileReader(pathFile);//转化为流
         return reader;
     }
-
-   public void parseJson(Connection con,String fileName) throws IOException {
+    public void parseString(String []str){//去除换行符号
+       for(int i=0;i<str.length;i++){
+           str[i]=str[i].replaceAll("\n"," ")
+                   .replaceAll("\r"," ")
+                   .trim();
+           if(str[i].equals("")){
+               str[i]="NONE";
+           }
+       }
+    }
+    public void insertDblp( PreparedStatement pst,String[]str) throws SQLException {
+        parseString(str);
+        pst.setString(1,str[0] );
+        pst.setString(2, str[1] );
+        pst.setString(3,str[2]);
+        pst.setInt(5,Integer.parseInt(str[3]));
+        pst.setString(4, str[4].equals("NONE") ?"-1":str[4]);
+        pst.setString(6, str[5].equals("NONE") ?"-1":str[5]);
+        pst.setString(7, str[6].equals("NONE") ?"-1":str[6]);
+        pst.setString(8,str[7]);
+        pst.setString(9,str[8]);
+        pst.setString(10,str[9]);
+        pst.setString(11,str[10]);
+        pst.setString(12,str[11]);
+        pst.setString(13,str[12]);
+        pst.setString(14,str[13]);
+    }
+    public void insertAuthor(PreparedStatement pst,String[]str) throws SQLException {
+       parseString(str);
+       pst.setString(1,str[0]);
+       pst.setString(2,str[1]);
+       pst.setString(3,str[2]);
+    }
+   public void parseJson(Connection con,String fileName) throws IOException, SQLException {
        String insertDblpSql = "insert into dblp_tbl  values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
        String insertAuthorSql = "insert into author_tbl values(?,?,?)";//数据库操作语句（插入）
        String queryAuthorSql = "select * from author_tbl where id = ?";
@@ -54,8 +84,6 @@ public class ParseJson {
        String queryVenueSql = "select * from venue_tbl where id = ?";
        Reader readerArray = getFileReader(fileName);
        JSONReader jsonArray = new JSONReader(readerArray);//传入流
-
-       String readStr="NONE";
        String author_name="NONE";
        String author_org="NONE";
        String author_id="NONE";
@@ -78,6 +106,7 @@ public class ParseJson {
            JSONObject jb= (JSONObject) jsonArray.readObject();
            //处理单个JSON对象内容 {}.这里可以再一次使用流式解析analysisObject,解析单个对象
            String  id = jb.getString("id");
+           System.out.println(id);
            JSONArray authors = jb.getJSONArray("authors");
            //获取第一个author
            JSONObject author=authors.getJSONObject(0);
@@ -102,7 +131,31 @@ public class ParseJson {
            venue_raw=getObjectToString(venue,"raw");
            venue_id=getObjectToString(venue,"id");
            venue_type=getObjectToString(venue,"type");
-           System.out.println(id);
+
+           //inset to dblp
+           PreparedStatement pst = con.prepareStatement(insertDblpSql);//用来执行SQL语句查询，对sql语句进行预编译处理
+           insertDblp(pst, new String[]{id,author_id,title,year,n_citation,
+                   page_start,page_end,doc_type,publisher,volume,issue,doi,references_0,venue_id});
+           pst.executeUpdate();//解释在下
+
+           //insert to author
+           pst = con.prepareStatement(queryAuthorSql);
+           pst.setString(1, author_id);
+           ResultSet rs = pst.executeQuery();
+           if(!rs.next()){
+               pst = con.prepareStatement(insertAuthorSql);//用来执行SQL语句查询，对sql语句进行预编译处理
+               insertAuthor(pst,new String[]{author_id,author_org,author_name});
+               pst.executeUpdate();//解释在下
+           }
+           //insert to venue
+           pst = con.prepareStatement(queryVenueSql);
+           pst.setString(1, venue_id);
+           rs = pst.executeQuery();
+           if(!rs.next()){
+               pst = con.prepareStatement(insertVenueSql);//用来执行SQL语句查询，对sql语句进行预编译处理
+               insertAuthor(pst,new String[]{venue_id,venue_raw,venue_type});
+               pst.executeUpdate();//解释在下
+           }
        }
        jsonArray.endArray();//结束读取
        jsonArray.close();//关闭reader流
